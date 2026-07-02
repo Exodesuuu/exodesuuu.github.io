@@ -518,46 +518,55 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Infinite Scroll State
+  let currentImageItems = [];
+  let renderedCount = 0;
+  let scrollObserver = null;
+  const ITEMS_PER_PAGE = 20;
+
   // Filter keys logic
   function applyFilters() {
     let filteredKeys = [];
+    const isJerseyPictureView = (activeTab === 'jersey' && activeColorFilter !== 'all');
+    const isApparelPictureView = (activeTab === 'shirt' && activeSubCategory !== 'all');
+    const isStandaloneType = ['logo', 'baseball', 'football', 'hoodie', 'poloshirt'].includes(activeTab);
+    const isPictureView = isJerseyPictureView || isApparelPictureView || isStandaloneType;
 
     if (activeTab === 'jersey') {
       filteredKeys = jerseyCategoriesKeys.filter(key => {
         const cat = categoriesDb[key];
-        
-        if (activeColorFilter !== 'all' && cat.color !== activeColorFilter) {
-          return false;
-        }
-        
-        if (searchQuery.length > 0) {
+        if (activeColorFilter !== 'all' && cat.color !== activeColorFilter) return false;
+        if (!isPictureView && searchQuery.length > 0) {
           if (!cat.name.toLowerCase().includes(searchQuery)) return false;
         }
-
-        if (showFavoritesOnly) {
+        if (!isPictureView && showFavoritesOnly) {
           const hasFav = cat.images.some(img => favorites.includes(img));
           if (!hasFav) return false;
         }
-
         return true;
       });
     } else {
       filteredKeys = apparelCategoriesKeys.filter(key => {
         const cat = categoriesDb[key];
-        
         if (cat.type !== activeTab) return false;
-
-        if (searchQuery.length > 0) {
+        if (!isPictureView && searchQuery.length > 0) {
           if (!cat.name.toLowerCase().includes(searchQuery)) return false;
         }
-
-        if (showFavoritesOnly) {
+        if (!isPictureView && showFavoritesOnly) {
           const hasFav = cat.images.some(img => favorites.includes(img));
           if (!hasFav) return false;
         }
-
         return true;
       });
+    }
+
+    // Dynamic placeholder
+    if (catalogueSearchInput) {
+      if (isPictureView) {
+        catalogueSearchInput.placeholder = `Search designs...`;
+      } else {
+        catalogueSearchInput.placeholder = `Search categories...`;
+      }
     }
 
     const isFiltered = activeColorFilter !== 'all' || searchQuery.length > 0 || showFavoritesOnly || activeSubCategory !== 'all';
@@ -572,28 +581,40 @@ document.addEventListener('DOMContentLoaded', () => {
       resultCountText.textContent = `Showing all options for ${activeTab.toUpperCase()}`;
     }
     
-    renderGrid(filteredKeys);
+    renderGrid(filteredKeys, isPictureView);
+  }
+
+  // Render Image Batch Helper
+  function renderImageBatch() {
+    const itemsToRender = currentImageItems.slice(renderedCount, renderedCount + ITEMS_PER_PAGE);
+    const allUrls = currentImageItems.map(i => i.url);
+    
+    itemsToRender.forEach((item, index) => {
+      const card = createIndividualPictureTile(item, renderedCount + index, allUrls);
+      catalogueGrid.appendChild(card);
+    });
+    
+    renderedCount += itemsToRender.length;
   }
 
   // Render Grid
-  function renderGrid(keys) {
+  function renderGrid(keys, isPictureView) {
     if (!catalogueGrid) return;
     catalogueGrid.innerHTML = '';
+    
+    // Reset Infinite Scroll
+    if (scrollObserver) {
+      scrollObserver.disconnect();
+      scrollObserver = null;
+    }
+    renderedCount = 0;
+    currentImageItems = [];
 
-    // Check if we are in individual picture mode or category type mode
-    const isJerseyPictureView = (activeTab === 'jersey' && activeColorFilter !== 'all');
-    const isApparelPictureView = (activeTab === 'shirt' && activeSubCategory !== 'all');
-    const isStandaloneType = ['logo', 'baseball', 'football', 'hoodie', 'poloshirt'].includes(activeTab);
-
-    if (isJerseyPictureView || isApparelPictureView || isStandaloneType) {
-      // Gather all individual matching pictures
-      const imageItems = [];
-
+    if (isPictureView) {
       keys.forEach(key => {
         const originalCat = categoriesDb[key];
         
         originalCat.images.forEach((imgUrl) => {
-          // Verify sub-category classification if on T-Shirt by checking the actual folder path in the URL
           let matchesSubCategory = true;
           if (activeTab === 'shirt') {
             if (activeSubCategory !== 'all') {
@@ -604,18 +625,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
           }
 
-          // Verify favorites only
           if (showFavoritesOnly && !favorites.includes(imgUrl)) {
             matchesSubCategory = false;
           }
 
-          // Verify search queries
-          if (searchQuery.length > 0 && !originalCat.name.toLowerCase().includes(searchQuery)) {
-            matchesSubCategory = false;
+          if (searchQuery.length > 0) {
+            let rawFileName = imgUrl.split('/').pop() || '';
+            rawFileName = rawFileName.replace(/\.(jpg|jpeg|png|webp|gif|svg)$/i, '');
+            if (!rawFileName.toLowerCase().includes(searchQuery)) {
+              matchesSubCategory = false;
+            }
           }
 
           if (matchesSubCategory) {
-            imageItems.push({
+            currentImageItems.push({
               url: imgUrl,
               categoryName: originalCat.name,
               type: originalCat.type
@@ -624,7 +647,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       });
 
-      if (imageItems.length === 0) {
+      if (currentImageItems.length === 0) {
         catalogueGrid.innerHTML = `
           <div class="grid-empty-state">
             <i class="fa-solid fa-folder-open"></i>
@@ -635,11 +658,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // Render all matching individual picture cards
-      imageItems.forEach((item, index) => {
-        const card = createIndividualPictureTile(item, index, imageItems.map(i => i.url));
-        catalogueGrid.appendChild(card);
-      });
+      // Render first batch
+      renderImageBatch();
+      
+      // Setup Observer
+      const sentinel = document.getElementById('scroll-sentinel');
+      if (sentinel) {
+        scrollObserver = new IntersectionObserver((entries) => {
+          if (entries[0].isIntersecting && renderedCount < currentImageItems.length) {
+            renderImageBatch();
+          }
+        }, { rootMargin: '400px' });
+        scrollObserver.observe(sentinel);
+      }
 
     } else {
       // Render Category Type Tiles ONLY (ALL is active)
@@ -1013,12 +1044,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================================================
   const header = document.querySelector('.main-header');
   
+  let lastScrollY = window.scrollY;
+  
   window.addEventListener('scroll', () => {
-    if (window.scrollY > 80) {
+    const currentScrollY = window.scrollY;
+    
+    // Hide when scrolling down, show when scrolling up
+    if (currentScrollY > lastScrollY && currentScrollY > 80) {
       header.classList.add('scroll-hidden');
     } else {
       header.classList.remove('scroll-hidden');
     }
+    
+    lastScrollY = currentScrollY;
     
     if (window.scrollY > 40) {
       header.classList.add('scrolled');
@@ -1033,14 +1071,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const sections = document.querySelectorAll('section');
     const navLinks = document.querySelectorAll('.nav-lnk');
     
-    let currentId = 'catalogue';
+    let currentId = 'catalogue'; // default
+    
     sections.forEach(sec => {
-      const top = sec.offsetTop - 120;
+      const top = sec.offsetTop - 200; // Increase offset to trigger earlier
       const height = sec.offsetHeight;
       if (window.scrollY >= top && window.scrollY < top + height) {
         currentId = sec.getAttribute('id');
       }
     });
+
+    // Check if user scrolled to the absolute bottom of the page
+    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 50) {
+      currentId = 'socials';
+    }
 
     navLinks.forEach(lnk => {
       lnk.classList.remove('active');
