@@ -761,8 +761,13 @@ document.addEventListener('DOMContentLoaded', () => {
     rawFileName = rawFileName.replace(/\.(jpg|jpeg|png|webp|gif|svg)$/i, '');
     let titleStr = rawFileName || `${item.categoryName} Template #${currentIndex + 1}`;
     
+    const isFav = favorites.includes(item.url);
+    
     card.innerHTML = `
       <div class="tile-img-wrap">
+        <button class="tile-fav-btn" aria-label="Favorite" title="Add to Favorites">
+          <i class="${isFav ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+        </button>
         <img class="tile-img" src="${item.url}" alt="${titleStr}" loading="lazy">
         <div class="tile-overlay">
           <div class="tile-bottom-info">
@@ -772,6 +777,22 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
 
+    // Favorite Button Logic
+    const favBtn = card.querySelector('.tile-fav-btn');
+    favBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Don't trigger the lightbox click
+      toggleFavorite(item.url);
+      
+      const newIsFav = favorites.includes(item.url);
+      favBtn.innerHTML = `<i class="${newIsFav ? 'fa-solid' : 'fa-regular'} fa-heart"></i>`;
+      
+      // If viewing favorites only, re-apply filters to remove it from the grid instantly
+      if (showFavoritesOnly) {
+        applyFilters();
+      }
+    });
+
+    // Lightbox Logic
     card.addEventListener('click', () => {
       lightboxActiveList = fullImageList;
       openLightbox(currentIndex, item.categoryName);

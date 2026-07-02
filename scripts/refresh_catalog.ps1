@@ -3,8 +3,9 @@
 # It will scan all your subfolders and automatically update the 'data.js' database so your website displays the correct files instantly!
 
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
-$imagesDir = Join-Path $scriptPath "images"
-$dataJsPath = Join-Path $scriptPath "data.js"
+$repoRoot = Split-Path -Parent $scriptPath
+$imagesDir = Join-Path $repoRoot "images"
+$dataJsPath = Join-Path $repoRoot "data.js"
 
 Add-Type -AssemblyName System.Drawing
 

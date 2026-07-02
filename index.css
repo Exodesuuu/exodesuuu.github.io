@@ -1005,6 +1005,42 @@ body.dark-mode .footer-logo-img {
   opacity: 1;
 }
 
+.tile-fav-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.4);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+  opacity: 0; /* Hidden by default */
+}
+
+/* Only show the favorite button when hovering over the card, OR if it's already favorited */
+.individual-photo-card:hover .tile-fav-btn,
+.tile-fav-btn:has(.fa-solid) {
+  opacity: 1;
+}
+
+.tile-fav-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.tile-fav-btn .fa-solid {
+  color: #ff4757; /* Highlight red for solid heart */
+}
+
 .tile-bottom-info {
   display: flex;
   flex-direction: column;

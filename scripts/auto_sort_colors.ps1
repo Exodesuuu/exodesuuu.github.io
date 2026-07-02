@@ -5,8 +5,9 @@
 Add-Type -AssemblyName System.Drawing
 
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
-$unsortedDir = Join-Path $scriptPath "images\unsorted"
-$imagesDir = Join-Path $scriptPath "images"
+$repoRoot = Split-Path -Parent $scriptPath
+$unsortedDir = Join-Path $repoRoot "images\unsorted"
+$imagesDir = Join-Path $repoRoot "images"
 
 if (-not (Test-Path $unsortedDir)) {
     New-Item -ItemType Directory -Path $unsortedDir | Out-Null
