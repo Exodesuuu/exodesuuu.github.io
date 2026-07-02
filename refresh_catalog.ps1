@@ -55,8 +55,8 @@ foreach ($folder in $folders) {
         $_.Extension -match "\.(jpg|jpeg|png|gif|svg|webp)$" 
     }
     
-    # Sort files by LastWriteTime descending so the newest files are placed at the top of the array!
-    $sortedFiles = $files | Sort-Object LastWriteTime -Descending
+    # Sort files by CreationTime descending so the newest files are placed at the top of the array!
+    $sortedFiles = $files | Sort-Object CreationTime -Descending
     
     $localPaths = @()
     foreach ($file in $sortedFiles) {
