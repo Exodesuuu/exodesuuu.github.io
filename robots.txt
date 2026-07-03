@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://jamesmesa.github.io/Portfolio-James-Mesa/sitemap.xml
