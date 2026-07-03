@@ -829,7 +829,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     card.innerHTML = `
       <div class="tile-img-wrap">
-        <img class="tile-img" src="${safeFeaturedImg}" alt="${subCat.title}" loading="lazy">
+        <img class="tile-img" src="${safeFeaturedImg}" alt="${subCat.title} - Custom Sublimation Sportswear Templates by James Mesa" loading="lazy">
         <div class="tile-overlay">
           <div class="tile-bottom-info">
             <span class="tile-tag">${originalCat.type.toUpperCase()}</span>
@@ -899,7 +899,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <button class="tile-fav-btn" aria-label="Favorite" title="Add to Favorites">
           <i class="${isFav ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
         </button>
-        <img class="tile-img" src="${item.url}" alt="${titleStr}" loading="lazy">
+        <img class="tile-img" src="${item.url}" alt="${titleStr} - Custom ${item.categoryName} Sublimated Jersey Design Layout by James Mesa" loading="lazy">
         <div class="tile-overlay">
           <div class="tile-bottom-info">
             <h4 class="tile-title">${titleStr}</h4>
@@ -949,7 +949,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     card.innerHTML = `
       <div class="tile-img-wrap">
-        <img class="tile-img" src="${safeFeaturedImg}" alt="${titleStr}" loading="lazy">
+        <img class="tile-img" src="${safeFeaturedImg}" alt="${titleStr} - Custom Sportswear and Uniform Designs by James Mesa" loading="lazy">
         <div class="tile-overlay">
           <div class="tile-bottom-info">
             <span class="tile-tag">${cat.type.toUpperCase()}</span>
