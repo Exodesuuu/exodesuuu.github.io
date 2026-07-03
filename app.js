@@ -1026,16 +1026,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const url = lightboxActiveList[lightboxActiveIndex];
       if (!url) return;
 
-      const subj = document.getElementById('form-subject');
-      const msg = document.getElementById('form-message');
-      
-      if (subj && msg) {
-        subj.value = `Inquiry: Sportswear Design ${lightboxCategoryName} (#${lightboxActiveIndex + 1})`;
-        msg.value = `Hi James,\n\nI am interested in your design template:\n${url}\n\nPlease let me know the details for this ${lightboxCategoryName} layout!`;
-        
-        closeLightbox();
-        document.getElementById('socials').scrollIntoView({ behavior: 'smooth' });
-      }
+      // Redirect directly to the user's Google Form in a new tab
+      window.open('https://forms.gle/Jr83hkyqjNx4mRbPA', '_blank');
     });
   }
 
