@@ -117,7 +117,40 @@ document.addEventListener('DOMContentLoaded', () => {
   if (canvas) {
     const ctx = canvas.getContext('2d');
     let particles = [];
+    let burstParticles = [];
     let mouse = { x: null, y: null, radius: 150 };
+
+    class BurstParticle {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 4;
+        this.vy = (Math.random() - 0.5) * 4;
+        this.radius = Math.random() * 2 + 1;
+        this.alpha = 1.0;
+        this.decay = Math.random() * 0.02 + 0.015;
+        this.color = Math.random() > 0.5 ? 'rgba(0, 240, 255, ' : 'rgba(157, 0, 255, ';
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vx *= 0.98;
+        this.vy *= 0.98;
+        this.alpha -= this.decay;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color + this.alpha + ')';
+        ctx.fill();
+      }
+    }
+
+    function generateBurst(x, y) {
+      for (let i = 0; i < 15; i++) {
+        burstParticles.push(new BurstParticle(x, y));
+      }
+    }
 
     function resizeCanvas() {
       canvas.width = window.innerWidth;
@@ -182,6 +215,16 @@ document.addEventListener('DOMContentLoaded', () => {
         p.draw();
       });
 
+      // Update and draw click burst particles
+      for (let i = burstParticles.length - 1; i >= 0; i--) {
+        const bp = burstParticles[i];
+        bp.update();
+        bp.draw();
+        if (bp.alpha <= 0) {
+          burstParticles.splice(i, 1);
+        }
+      }
+
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const p1 = particles[i];
@@ -225,6 +268,12 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('mousemove', (e) => {
       mouse.x = e.clientX;
       mouse.y = e.clientY;
+    });
+
+    window.addEventListener('mousedown', (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+      generateBurst(e.clientX, e.clientY);
     });
 
     window.addEventListener('mouseleave', () => {
@@ -1214,6 +1263,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
     });
+  }
+
+  // Typewriter Hero Animation
+  const typewriterElement = document.getElementById('typewriter-text');
+  if (typewriterElement) {
+    const words = ["Precise Design.", "Elite Sportswear.", "Factory-Ready Prints.", "Athletic Identity."];
+    let wordIndex = 0;
+    let charIndex = typewriterElement.textContent.length;
+    let isDeleting = false;
+    let typingSpeed = 100;
+    
+    function type() {
+      const currentWord = words[wordIndex];
+      
+      if (isDeleting) {
+        typewriterElement.textContent = currentWord.substring(0, charIndex - 1);
+        charIndex--;
+        typingSpeed = 50; // Deleting is faster
+      } else {
+        typewriterElement.textContent = currentWord.substring(0, charIndex + 1);
+        charIndex++;
+        typingSpeed = 100;
+      }
+      
+      if (!isDeleting && charIndex === currentWord.length) {
+        typingSpeed = 2000; // Pause at end of word
+        isDeleting = true;
+      } else if (isDeleting && charIndex === 0) {
+        isDeleting = false;
+        wordIndex = (wordIndex + 1) % words.length;
+        typingSpeed = 500; // Pause before typing next word
+      }
+      
+      setTimeout(type, typingSpeed);
+    }
+    
+    // Start after a brief delay
+    setTimeout(type, 1500);
   }
 
   // Initialize Catalogue

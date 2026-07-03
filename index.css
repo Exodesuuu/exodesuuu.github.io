@@ -2104,3 +2104,19 @@ body.dark-mode .footer-logo-img {
     right: -100%;
   }
 }
+
+/* ==========================================================================
+   TYPEWRITER CURSOR
+   ========================================================================== */
+.typewriter-cursor {
+  color: var(--accent-primary);
+  font-weight: 300;
+  animation: blink 0.8s infinite;
+  text-shadow: 0 0 10px var(--accent-primary);
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
