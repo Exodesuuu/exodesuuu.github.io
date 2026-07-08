@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://jamesmesa.online/sitemap.xml
+Sitemap: https://www.jamesmesa.online/sitemap.xml
