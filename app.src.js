@@ -50,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     PORTFOLIO_DATA.forEach(category => {
       // Extract design categories
       if (category.IsDesignCategory) {
+        if (category.Name.toLowerCase().includes('new drop')) return;
         const cleanCatName = category.Name.replace('Design - ', '');
         
         // Settle group details
@@ -89,25 +90,32 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Populate Hero Showcase Slider (NEW DESIGN DROP - Newest images from different categories)
-  Object.keys(categoriesDb).forEach(key => {
-    const catObj = categoriesDb[key];
-    if (catObj.images && catObj.images.length > 0) {
-      featuredSliderImages.push({
-        url: catObj.images[0], // The newest image (first in reversed array)
-        category: `NEW ${catObj.type.toUpperCase()} DROP: ${catObj.name}`
+  // Populate Hero Showcase Slider (NEW DESIGN DROP - Only show images from dedicated 'New Drop' category)
+  let hasNewDrop = false;
+  if (typeof PORTFOLIO_DATA !== 'undefined') {
+    const newDropCat = PORTFOLIO_DATA.find(c => c.Name.toLowerCase().includes('new drop'));
+    if (newDropCat && newDropCat.Images && newDropCat.Images.length > 0) {
+      hasNewDrop = true;
+      newDropCat.Images.forEach(img => {
+        featuredSliderImages.push({
+          url: img,
+          category: 'NEW DESIGN DROP'
+        });
       });
     }
-  });
+  }
 
-  // Fallback for featured slider if no categories loaded
-  if (featuredSliderImages.length === 0 && typeof PORTFOLIO_DATA !== 'undefined') {
-    const homeCat = PORTFOLIO_DATA.find(c => c.Name === 'Home');
-    if (homeCat) {
-      homeCat.Images.forEach(img => {
-        featuredSliderImages.push({ url: img, category: 'NEW DESIGN DROP' });
-      });
-    }
+  // Fallback: If no dedicated 'New Drop' category is found, fall back to taking the first image from each category
+  if (!hasNewDrop) {
+    Object.keys(categoriesDb).forEach(key => {
+      const catObj = categoriesDb[key];
+      if (catObj.images && catObj.images.length > 0) {
+        featuredSliderImages.push({
+          url: catObj.images[0],
+          category: `NEW ${catObj.type.toUpperCase()} DROP: ${catObj.name}`
+        });
+      }
+    });
   }
 
   // ==========================================================================

@@ -1,4 +1,18 @@
-﻿const PORTFOLIO_DATA = [
+const PORTFOLIO_DATA = [
+    {
+        "Name":  "Design - New Drop",
+        "Path":  "/design/new-drop-custom-jersey-design",
+        "IsDesignCategory":  true,
+        "Images":  [
+                       "images/poloshirt/BKD (2).jpg",
+                       "images/poloshirt/BKD 1.jpg",
+                       "images/poloshirt/MABINI SPORTS CLUB.jpg",
+                       "images/poloshirt/RCY.jpg",
+                       "images/poloshirt/SSLG 1 (2).jpg",
+                       "images/poloshirt/SSLG.jpg",
+                       "images/poloshirt/YES-O.jpg"
+                   ]
+    },
     {
         "Name":  "Design - Baseball",
         "Path":  "/design/baseball-custom-jersey-design",
