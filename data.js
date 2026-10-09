@@ -1,24 +1,39 @@
-const PORTFOLIO_DATA = [
-    {
-        "Name":  "Design - New Drop",
-        "Path":  "/design/new-drop-custom-jersey-design",
-        "IsDesignCategory":  true,
-        "Images":  [
-                       "images/poloshirt/BKD (2).jpg",
-                       "images/poloshirt/BKD 1.jpg",
-                       "images/poloshirt/MABINI SPORTS CLUB.jpg",
-                       "images/poloshirt/RCY.jpg",
-                       "images/poloshirt/SSLG 1 (2).jpg",
-                       "images/poloshirt/SSLG.jpg",
-                       "images/poloshirt/YES-O.jpg"
-                   ]
-    },
+﻿const PORTFOLIO_DATA = [
     {
         "Name":  "Design - Baseball",
         "Path":  "/design/baseball-custom-jersey-design",
         "IsDesignCategory":  true,
         "Images":  [
-
+                       "images/baseball/SANDWICH 3.jpg",
+                       "images/baseball/SANDWICH 2.jpg",
+                       "images/baseball/SANDWICH 1.jpg",
+                       "images/baseball/WILDCATS 3.jpg",
+                       "images/baseball/WILDCATS 2.jpg",
+                       "images/baseball/WILDCATS.jpg",
+                       "images/baseball/BRAVO 3.jpg",
+                       "images/baseball/BRAVO 2.jpg",
+                       "images/baseball/BRAVO 1.jpg",
+                       "images/baseball/MONACHE 3.jpg",
+                       "images/baseball/MONACHE 2.jpg",
+                       "images/baseball/MONACHE 1.jpg",
+                       "images/baseball/EVERGREEN 3.jpg",
+                       "images/baseball/EVERGREEN 2.jpg",
+                       "images/baseball/EVERGREEN 1.jpg",
+                       "images/baseball/GRACE DAVIS 3.jpg",
+                       "images/baseball/GRACE DAVIS 2.jpg",
+                       "images/baseball/GRACE DAVIS 1.jpg",
+                       "images/baseball/BURLINGAME 3.jpg",
+                       "images/baseball/BURLINGAME 2.jpg",
+                       "images/baseball/BURLINGAME 1.jpg",
+                       "images/baseball/EMERSON DAVINCI 3.jpg",
+                       "images/baseball/EMERSON DAVINCI 2.jpg",
+                       "images/baseball/EMERSON DAVINCI 1.jpg",
+                       "images/baseball/THOMPSON 3.jpg",
+                       "images/baseball/THOMPSON 2.jpg",
+                       "images/baseball/THOMPSON 1.jpg",
+                       "images/baseball/TWIN PEAKS 3.jpg",
+                       "images/baseball/TWIN PEAKS 2.jpg",
+                       "images/baseball/TWIN PEAKS 1.jpg"
                    ]
     },
     {
@@ -26,6 +41,7 @@ const PORTFOLIO_DATA = [
         "Path":  "/design/beige-custom-jersey-design",
         "IsDesignCategory":  true,
         "Images":  [
+                       "images/beige/ANSELMO.jpg",
                        "images/beige/WOODBRIDGE.jpg",
                        "images/beige/TATAK MAMAY.jpg",
                        "images/beige/TAKUSA 3.0.jpg",
@@ -146,6 +162,8 @@ const PORTFOLIO_DATA = [
         "Path":  "/design/blue-custom-jersey-design",
         "IsDesignCategory":  true,
         "Images":  [
+                       "images/blue/QUARTER MASTER.jpg",
+                       "images/blue/BAKUNAWA BLUE.jpg",
                        "images/blue/WOFS.jpg",
                        "images/blue/UNDERRATED 2.jpg",
                        "images/blue/TROPANG GUISHAN.jpg",
@@ -178,7 +196,6 @@ const PORTFOLIO_DATA = [
                        "images/blue/RISING STARS.jpg",
                        "images/blue/REGENCY ONE HUSKIES.jpg",
                        "images/blue/RAKUZAN 1.jpg",
-                       "images/blue/QUARTER MASTER.jpg",
                        "images/blue/PULONGPARANG STALLIONS.jpg",
                        "images/blue/PIRATES.jpg",
                        "images/blue/PINSANITY.jpg",
@@ -245,6 +262,8 @@ const PORTFOLIO_DATA = [
         "Path":  "/design/cyan-custom-jersey-design",
         "IsDesignCategory":  true,
         "Images":  [
+                       "images/cyan/EASTERN BALLERS.jpg",
+                       "images/cyan/KRITI WARRIOR.jpg",
                        "images/cyan/VENOM.jpg",
                        "images/cyan/UNICO HIJO.jpg",
                        "images/cyan/TARUVERSE.jpg",
@@ -283,6 +302,7 @@ const PORTFOLIO_DATA = [
         "Path":  "/design/gray-custom-jersey-design",
         "IsDesignCategory":  true,
         "Images":  [
+                       "images/gray/PRYCE.jpg",
                        "images/gray/ZONE.jpg",
                        "images/gray/ZJJV.jpg",
                        "images/gray/WAREHOUSE.jpg",
@@ -309,6 +329,10 @@ const PORTFOLIO_DATA = [
         "Path":  "/design/green-custom-jersey-design",
         "IsDesignCategory":  true,
         "Images":  [
+                       "images/green/STALLION.jpg",
+                       "images/green/ANSELMO 1.jpg",
+                       "images/green/ILAYA.jpg",
+                       "images/green/SANTA FE.jpg",
                        "images/green/WILCON DEPOT.jpg",
                        "images/green/WAZE M.jpg",
                        "images/green/TRUEPS.jpg",
@@ -365,6 +389,10 @@ const PORTFOLIO_DATA = [
         "Path":  "/design/hoodie-custom-jersey-design",
         "IsDesignCategory":  true,
         "Images":  [
+                       "images/hoodie/5-STAG HOODIE.jpg",
+                       "images/hoodie/CELESTIALS WHITE HOODIE.jpg",
+                       "images/hoodie/CELESTIALS BLACK HOODIE.jpg",
+                       "images/hoodie/riders.jpg",
                        "images/hoodie/WOK N\u0027 ROLL.jpg",
                        "images/hoodie/WEST.jpg",
                        "images/hoodie/TN.jpg",
@@ -443,6 +471,7 @@ const PORTFOLIO_DATA = [
         "Path":  "/design/pink-custom-jersey-design",
         "IsDesignCategory":  true,
         "Images":  [
+                       "images/pink/ASTRAL NINE.jpg",
                        "images/pink/TEAM B.jpg",
                        "images/pink/STONERS.jpg",
                        "images/pink/STEM XI.jpg",
@@ -481,6 +510,15 @@ const PORTFOLIO_DATA = [
         "Path":  "/design/poloshirt-custom-jersey-design",
         "IsDesignCategory":  true,
         "Images":  [
+                       "images/poloshirt/PICKLEBALL 1.jpg",
+                       "images/poloshirt/PICKLEBALL 2.jpg",
+                       "images/poloshirt/PICKLEBALL 3.jpg",
+                       "images/poloshirt/SPTA (2).jpg",
+                       "images/poloshirt/SGC.jpg",
+                       "images/poloshirt/GRIEVANCE.jpg",
+                       "images/poloshirt/DISCIPLINARY.jpg",
+                       "images/poloshirt/TUGATOG MOCKUP.jpg",
+                       "images/poloshirt/MAPEH MOCKUP.jpg",
                        "images/poloshirt/YES-O.jpg",
                        "images/poloshirt/SSLG.jpg",
                        "images/poloshirt/SSLG 1 (2).jpg",
@@ -588,6 +626,7 @@ const PORTFOLIO_DATA = [
         "Path":  "/design/purple-custom-jersey-design",
         "IsDesignCategory":  true,
         "Images":  [
+                       "images/purple/VALDRAKON.jpg",
                        "images/purple/VIPER.jpg",
                        "images/purple/TUMBUKAN DOS.jpg",
                        "images/purple/THE SAILOR.jpg",
@@ -639,6 +678,9 @@ const PORTFOLIO_DATA = [
         "Path":  "/design/red-custom-jersey-design",
         "IsDesignCategory":  true,
         "Images":  [
+                       "images/red/SLS GUARDIANS.jpg",
+                       "images/red/PATIENCE.jpg",
+                       "images/red/GMR.jpg",
                        "images/red/WEST POINT.jpg",
                        "images/red/WARRIORS.jpg",
                        "images/red/WARRIOR MIRAH.jpg",
@@ -718,6 +760,13 @@ const PORTFOLIO_DATA = [
         "Path":  "/design/tshirt-custom-jersey-design",
         "IsDesignCategory":  true,
         "Images":  [
+                       "images/tshirt/sports/02MUCH POWER.jpg",
+                       "images/tshirt/sports/CELESTIALS 2.jpg",
+                       "images/tshirt/sports/CELESTIALS 1.jpg",
+                       "images/tshirt/corporate/KABATAAN AKTIBO.jpg",
+                       "images/tshirt/sports/SERAPHS 1.jpg",
+                       "images/tshirt/event/MIDNIGHT SOVEREIGN.jpg",
+                       "images/tshirt/corporate/SSLG 1.jpg",
                        "images/tshirt/corporate/URDANETA.jpg",
                        "images/tshirt/sports/UPLANDERS.jpg",
                        "images/tshirt/corporate/TWOTOGETHER.jpg",
@@ -854,6 +903,8 @@ const PORTFOLIO_DATA = [
         "Path":  "/design/white-custom-jersey-design",
         "IsDesignCategory":  true,
         "Images":  [
+                       "images/white/SACS WHITE.jpg",
+                       "images/white/INNOCENTE.jpg",
                        "images/white/VENDETTA.jpg",
                        "images/white/UNDERRATED.jpg",
                        "images/white/TROPANG TAMBAY 1.jpg",
@@ -933,6 +984,9 @@ const PORTFOLIO_DATA = [
         "Path":  "/design/yellow-custom-jersey-design",
         "IsDesignCategory":  true,
         "Images":  [
+                       "images/yellow/GOLDEN FALCONS.jpg",
+                       "images/yellow/CYBERNOVA.jpg",
+                       "images/yellow/PANTHERA.jpg",
                        "images/yellow/UNO BALLERS.jpg",
                        "images/yellow/TORAY.jpg",
                        "images/yellow/THIRD DISTRICT.jpg",
