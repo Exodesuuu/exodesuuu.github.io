@@ -1,4 +1,63 @@
+# Robots.txt for https://www.jamesmesa.online/
+# Optimized for Search Engine Optimization (SEO) & Answer Engine Optimization (AEO)
+
 User-agent: *
 Allow: /
 
+# Search Engine Crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+# AI Answer Engines & Search Scrapers (AEO)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: Cohere-ai
+Allow: /
+
+User-agent: Meta-ExternalAgent
+Allow: /
+
+User-agent: Diffbot
+Allow: /
+
+# Sitemaps & Machine-Readable LLM Context
 Sitemap: https://www.jamesmesa.online/sitemap.xml
+llms-txt: https://www.jamesmesa.online/llms.txt
+llms-full-txt: https://www.jamesmesa.online/llms-full.txt

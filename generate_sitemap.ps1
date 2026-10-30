@@ -6,6 +6,7 @@ function Escape-XmlString ($string) {
 
 $dataPath = "C:\Users\James\Documents\GitHub\Portfolio-James-Mesa\data.js"
 $sitemapPath = "C:\Users\James\Documents\GitHub\Portfolio-James-Mesa\sitemap.xml"
+$today = (Get-Date).ToString("yyyy-MM-dd")
 
 if (Test-Path $dataPath) {
     $content = Get-Content $dataPath -Raw
@@ -19,6 +20,9 @@ if (Test-Path $dataPath) {
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://www.jamesmesa.online/</loc>
+    <lastmod>$today</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
 "@
 
     $xmlBody = ""
@@ -35,14 +39,13 @@ if (Test-Path $dataPath) {
             $fileName = $imgPath.Split('/')[-1]
             $title = $fileName.SubString(0, $fileName.LastIndexOf('.'))
             
-            # Format the loc URL correctly
-            # Note: We need to replace spaces with %20 for valid XML URL encoding
+            # Format the loc URL correctly with URL-encoded spaces
             $encodedImgPath = $imgPath.Replace(" ", "%20")
             $imgUrl = "https://www.jamesmesa.online/$encodedImgPath"
             
             # Escape strings for valid XML
             $escapedImgUrl = Escape-XmlString $imgUrl
-            $escapedTitle = Escape-XmlString "$title Jersey Design"
+            $escapedTitle = Escape-XmlString "$title Custom Sportswear Design"
             
             $xmlBody += "`r`n    <image:image>"
             $xmlBody += "`r`n      <image:loc>$escapedImgUrl</image:loc>"
@@ -55,6 +58,15 @@ if (Test-Path $dataPath) {
   </url>
   <url>
     <loc>https://www.jamesmesa.online/resume-project/index.html</loc>
+    <lastmod>$today</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.jamesmesa.online/llms.txt</loc>
+    <lastmod>$today</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
 </urlset>
 "@
@@ -65,7 +77,7 @@ if (Test-Path $dataPath) {
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     [System.IO.File]::WriteAllText($sitemapPath, $finalXml, $utf8NoBom)
     
-    Write-Host "Successfully generated Image Sitemap at sitemap.xml with $($seenImages.Count) images!"
+    Write-Host "Successfully generated Image & Content Sitemap at sitemap.xml with $($seenImages.Count) images and updated metadata!"
 } else {
     Write-Warning "data.js not found! Cannot generate image sitemap."
 }
