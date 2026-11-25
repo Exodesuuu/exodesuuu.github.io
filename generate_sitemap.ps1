@@ -4,14 +4,15 @@ function Escape-XmlString ($string) {
     return $string.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace('"', "&quot;").Replace("'", "&apos;")
 }
 
-$dataPath = "C:\Users\James\Documents\GitHub\Portfolio-James-Mesa\data.js"
-$sitemapPath = "C:\Users\James\Documents\GitHub\Portfolio-James-Mesa\sitemap.xml"
+$repoRoot = $PSScriptRoot
+$dataPath = Join-Path $repoRoot "data.js"
+$sitemapPath = Join-Path $repoRoot "sitemap.xml"
 $today = (Get-Date).ToString("yyyy-MM-dd")
 
 if (Test-Path $dataPath) {
-    $content = Get-Content $dataPath -Raw
+    $content = Get-Content $dataPath -Encoding UTF8 -Raw
     
-    # Simple regex to extract image paths (e.g., "images/beige/WOODBRIDGE.jpg")
+    # Extract image paths (e.g., "images/beige/WOODBRIDGE.jpg")
     $matches = [regex]::Matches($content, '"(images/[^"]+\.(jpg|jpeg|png|webp|gif|svg))"')
     
     $xmlHeader = @"
@@ -31,21 +32,17 @@ if (Test-Path $dataPath) {
     foreach ($match in $matches) {
         $imgPath = $match.Groups[1].Value
         
-        # Avoid duplicate image entries
         if (-not $seenImages.ContainsKey($imgPath)) {
             $seenImages[$imgPath] = $true
             
-            # Extract image filename to use as title
             $fileName = $imgPath.Split('/')[-1]
             $title = $fileName.SubString(0, $fileName.LastIndexOf('.'))
             
-            # Format the loc URL correctly with URL-encoded spaces
             $encodedImgPath = $imgPath.Replace(" ", "%20")
             $imgUrl = "https://www.jamesmesa.online/$encodedImgPath"
             
-            # Escape strings for valid XML
             $escapedImgUrl = Escape-XmlString $imgUrl
-            $escapedTitle = Escape-XmlString "$title Custom Sportswear Design"
+            $escapedTitle = Escape-XmlString "$title Custom Sportswear Design by James Mesa"
             
             $xmlBody += "`r`n    <image:image>"
             $xmlBody += "`r`n      <image:loc>$escapedImgUrl</image:loc>"
@@ -68,16 +65,21 @@ if (Test-Path $dataPath) {
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
+  <url>
+    <loc>https://www.jamesmesa.online/llms-full.txt</loc>
+    <lastmod>$today</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
 </urlset>
 "@
     
     $finalXml = $xmlHeader + $xmlBody + "`r`n" + $xmlFooter
     
-    # Write UTF-8 WITHOUT a BOM using .NET IO class
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     [System.IO.File]::WriteAllText($sitemapPath, $finalXml, $utf8NoBom)
     
-    Write-Host "Successfully generated Image & Content Sitemap at sitemap.xml with $($seenImages.Count) images and updated metadata!"
+    Write-Host "Successfully generated Image & Content Sitemap at sitemap.xml with $($seenImages.Count) images (lastmod $today)!" -ForegroundColor Green
 } else {
-    Write-Warning "data.js not found! Cannot generate image sitemap."
+    Write-Warning "data.js not found in $repoRoot! Cannot generate image sitemap."
 }

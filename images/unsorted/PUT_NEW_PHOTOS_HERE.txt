@@ -1,0 +1,23 @@
+HOW TO UPLOAD NEW PHOTOS TO YOUR WEBSITE
+========================================
+
+1. Basketball Jerseys (Auto-Color Sorted):
+   Drop new .jpg / .jpeg / .png files right into this folder (`images\unsorted\`).
+   Use clean team/design names for filenames (e.g., `PHOENIX RISING.jpg`), because
+   the website displays the filename as the design title and lets clients search by it!
+
+2. Other Categories (Place Directly in the Matching Folder):
+   - Baseball Jerseys  -> images\baseball\
+   - Polo Shirts       -> images\poloshirt\
+   - Hoodies           -> images\hoodie\
+   - Sports T-Shirts   -> images\tshirt\sports\
+   - Event T-Shirts    -> images\tshirt\event\
+   - Corporate Tees    -> images\tshirt\corporate\
+   - Hero "New Drop"   -> images\new-drop\ (optional featured showcase folder)
+   - Football / Logos  -> images\football\ or images\logo\
+
+3. Update the Website in One Step:
+   Run `scripts\update_website.ps1` in PowerShell:
+     powershell -ExecutionPolicy Bypass -File .\scripts\update_website.ps1
+   This automatically sorts `images\unsorted\`, refreshes `data.js`, updates `sitemap.xml`,
+   and rebuilds `index.html` and `app.js`.

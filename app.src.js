@@ -306,10 +306,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const sliderNextBtn = document.getElementById('slider-next');
   let sliderTimer;
 
-  function updateSlider() {
-    if (featuredSliderImages.length === 0) return;
+  function updateSlider(immediate = false) {
+    if (featuredSliderImages.length === 0 || !sliderImg) return;
     const current = featuredSliderImages[sliderIndex];
     
+    if (immediate) {
+      sliderImg.src = current.url;
+      sliderCategory.textContent = current.category;
+      sliderIndicator.textContent = `${sliderIndex + 1} / ${featuredSliderImages.length}`;
+      sliderImg.style.opacity = 1;
+      return;
+    }
+
     // Smooth transition: brief fade out, swap, fade in
     sliderImg.style.opacity = 0;
     setTimeout(() => {
@@ -317,7 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
       sliderCategory.textContent = current.category;
       sliderIndicator.textContent = `${sliderIndex + 1} / ${featuredSliderImages.length}`;
       sliderImg.style.opacity = 1;
-    }, 600);
+    }, 350);
   }
 
   function nextSliderImage() {
@@ -340,7 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (sliderPrevBtn && sliderNextBtn) {
     sliderPrevBtn.addEventListener('click', prevSliderImage);
     sliderNextBtn.addEventListener('click', nextSliderImage);
-    updateSlider();
+    updateSlider(true);
     resetSliderTimer();
   }
 
@@ -631,7 +639,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (drawerInquireBtn) {
     drawerInquireBtn.addEventListener('click', () => {
-      window.open('https://forms.gle/Jr83hkyqjNx4mRbPA', '_blank');
+      closeDrawer();
+      openQuoteModal({
+        packageName: favorites.length > 1 ? 'Bulk Team Package (10+ Units)' : 'Single Pre-Made Design ($49+)',
+        designs: favorites.length > 0 ? [...favorites] : []
+      });
     });
   }
 
@@ -676,20 +688,48 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Helper: extract clean design title from path
+  function getDesignTitleFromUrl(url) {
+    const rawFileName = (url.split('/').pop() || '').replace(/\.(jpg|jpeg|png|webp|gif|svg)$/i, '');
+    return rawFileName || 'Sportswear Design';
+  }
+
+  // Sync URL query params for shareable / crawlable category & search views
+  function syncUrlParams() {
+    try {
+      const params = new URLSearchParams();
+      if (activeTab && activeTab !== 'jersey') params.set('tab', activeTab);
+      if (activeTab === 'jersey' && activeColorFilter !== 'all') params.set('color', activeColorFilter);
+      if (activeTab === 'shirt' && activeSubCategory !== 'all') params.set('subcat', activeSubCategory);
+      if (searchQuery) params.set('q', searchQuery);
+      const queryStr = params.toString();
+      const nextUrl = queryStr ? `${window.location.pathname}?${queryStr}${window.location.hash}` : `${window.location.pathname}${window.location.hash}`;
+      window.history.replaceState(null, '', nextUrl);
+    } catch (e) {
+      // Ignore history errors in restricted contexts
+    }
+  }
+
   // Filter keys logic
   function applyFilters() {
     let filteredKeys = [];
 
-    if (activeTab === 'jersey') {
+    // When search query is active, search across ALL design filenames and categories!
+    if (searchQuery.length > 0) {
+      filteredKeys = Object.keys(categoriesDb).filter(key => {
+        const cat = categoriesDb[key];
+        const catMatches = cat.name.toLowerCase().includes(searchQuery) || cat.type.toLowerCase().includes(searchQuery);
+        const imageMatches = cat.images.some(img => getDesignTitleFromUrl(img).toLowerCase().includes(searchQuery) || img.toLowerCase().includes(searchQuery));
+        if (!catMatches && !imageMatches) return false;
+        if (showFavoritesOnly && !cat.images.some(img => favorites.includes(img))) return false;
+        return true;
+      });
+    } else if (activeTab === 'jersey') {
       filteredKeys = jerseyCategoriesKeys.filter(key => {
         const cat = categoriesDb[key];
         
         if (activeColorFilter !== 'all' && cat.color !== activeColorFilter) {
           return false;
-        }
-        
-        if (searchQuery.length > 0) {
-          if (!cat.name.toLowerCase().includes(searchQuery)) return false;
         }
 
         if (showFavoritesOnly) {
@@ -705,10 +745,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (cat.type !== activeTab) return false;
 
-        if (searchQuery.length > 0) {
-          if (!cat.name.toLowerCase().includes(searchQuery)) return false;
-        }
-
         if (showFavoritesOnly) {
           const hasFav = cat.images.some(img => favorites.includes(img));
           if (!hasFav) return false;
@@ -719,18 +755,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const isFiltered = activeColorFilter !== 'all' || searchQuery.length > 0 || showFavoritesOnly || activeSubCategory !== 'all';
-    resetFiltersBtn.style.display = isFiltered ? 'inline-block' : 'none';
+    if (resetFiltersBtn) resetFiltersBtn.style.display = isFiltered ? 'inline-block' : 'none';
 
-    // Update results label description
-    if (activeTab === 'jersey' && activeColorFilter !== 'all') {
-      resultCountText.textContent = `Showing individual designs for ${activeColorFilter} jerseys`;
-    } else if (activeTab === 'shirt' && activeSubCategory !== 'all') {
-      resultCountText.textContent = `Showing individual ${activeSubCategory} T-Shirt designs`;
-    } else {
-      resultCountText.textContent = `Showing all options for ${activeTab.toUpperCase()}`;
-    }
-    
+    syncUrlParams();
     renderGrid(filteredKeys);
+
+    // Update results label description with accurate counts
+    if (resultCountText) {
+      if (searchQuery.length > 0) {
+        resultCountText.textContent = `Found ${currentImageItems.length} design${currentImageItems.length === 1 ? '' : 's'} matching "${searchQuery}"`;
+      } else if (showFavoritesOnly) {
+        resultCountText.textContent = `Showing ${currentImageItems.length} favorited design${currentImageItems.length === 1 ? '' : 's'}`;
+      } else if (activeTab === 'jersey' && activeColorFilter !== 'all') {
+        resultCountText.textContent = `Showing ${currentImageItems.length} ${activeColorFilter} jersey designs`;
+      } else if (activeTab === 'shirt' && activeSubCategory !== 'all') {
+        resultCountText.textContent = `Showing ${currentImageItems.length} ${activeSubCategory} T-Shirt designs`;
+      } else if (['logo', 'baseball', 'football', 'hoodie', 'poloshirt'].includes(activeTab)) {
+        resultCountText.textContent = `Showing ${currentImageItems.length} ${activeTab} designs`;
+      } else {
+        resultCountText.textContent = `Showing ${filteredKeys.length} categories (${activeTab.toUpperCase()})`;
+      }
+    }
   }
 
   // Render Grid
@@ -765,38 +810,42 @@ document.addEventListener('DOMContentLoaded', () => {
       currentImageItems = [];
   
       // Check if we are in individual picture mode or category type mode
+      const isSearchOrFavView = searchQuery.length > 0 || showFavoritesOnly;
       const isJerseyPictureView = (activeTab === 'jersey' && activeColorFilter !== 'all');
       const isApparelPictureView = (activeTab === 'shirt' && activeSubCategory !== 'all');
       const isStandaloneType = ['logo', 'baseball', 'football', 'hoodie', 'poloshirt'].includes(activeTab);
   
-      if (isJerseyPictureView || isApparelPictureView || isStandaloneType) {
+      if (isSearchOrFavView || isJerseyPictureView || isApparelPictureView || isStandaloneType) {
         // Gather all individual matching pictures
         keys.forEach(key => {
           const originalCat = categoriesDb[key];
           
           originalCat.images.forEach((imgUrl) => {
-            // Verify sub-category classification if on T-Shirt by checking the actual folder path in the URL
-            let matchesSubCategory = true;
-            if (activeTab === 'shirt') {
-              if (activeSubCategory !== 'all') {
-                const subStr = `/${activeSubCategory.toLowerCase()}/`;
-                if (!imgUrl.toLowerCase().includes(subStr)) {
-                  matchesSubCategory = false;
-                }
+            let matches = true;
+            if (!isSearchOrFavView && activeTab === 'shirt' && activeSubCategory !== 'all') {
+              const subStr = `/${activeSubCategory.toLowerCase()}/`;
+              if (!imgUrl.toLowerCase().includes(subStr)) {
+                matches = false;
               }
             }
   
             // Verify favorites only
             if (showFavoritesOnly && !favorites.includes(imgUrl)) {
-              matchesSubCategory = false;
+              matches = false;
             }
   
-            // Verify search queries
-            if (searchQuery.length > 0 && !originalCat.name.toLowerCase().includes(searchQuery)) {
-              matchesSubCategory = false;
+            // Verify search queries against design filename OR category name
+            if (searchQuery.length > 0) {
+              const titleLower = getDesignTitleFromUrl(imgUrl).toLowerCase();
+              const catLower = originalCat.name.toLowerCase();
+              const typeLower = originalCat.type.toLowerCase();
+              const urlLower = imgUrl.toLowerCase();
+              if (!titleLower.includes(searchQuery) && !catLower.includes(searchQuery) && !typeLower.includes(searchQuery) && !urlLower.includes(searchQuery)) {
+                matches = false;
+              }
             }
   
-            if (matchesSubCategory) {
+            if (matches) {
               currentImageItems.push({
                 url: imgUrl,
                 categoryName: originalCat.name,
@@ -807,13 +856,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
   
         if (currentImageItems.length === 0) {
-          catalogueGrid.innerHTML = `
+          const isCustomTab = (activeTab === 'football' || activeTab === 'logo') && searchQuery.length === 0 && !showFavoritesOnly;
+          const label = activeTab === 'football' ? 'Football / Soccer Kits' : activeTab === 'logo' ? 'Team Logos & Crests' : 'Matching Designs';
+          catalogueGrid.innerHTML = isCustomTab ? `
+            <div class="grid-empty-state">
+              <i class="fa-solid fa-pen-ruler"></i>
+              <h3>Custom ${label} Available</h3>
+              <p>I design custom ${label.toLowerCase()} from scratch with 24–48h 3D mockups and print-ready .AI/.EPS vectors. Request a custom concept for your team!</p>
+              <button type="button" class="btn btn-primary open-empty-quote-btn">Request Custom ${activeTab === 'logo' ? 'Logo' : 'Football Kit'}</button>
+            </div>
+          ` : `
             <div class="grid-empty-state">
               <i class="fa-solid fa-folder-open"></i>
               <h3>No designs match your criteria</h3>
-              <p>Try clearing your active filters or searching something else.</p>
+              <p>Try a different team name or keyword, clear your active filters, or request a custom design built from scratch.</p>
             </div>
           `;
+          const customBtn = catalogueGrid.querySelector('.open-empty-quote-btn');
+          if (customBtn) {
+            customBtn.addEventListener('click', () => {
+              openQuoteModal({
+                packageName: 'Custom Commission',
+                garmentType: activeTab === 'logo' ? 'Team Logo / Branding' : 'Football / Soccer Kit'
+              });
+            });
+          }
           return;
         }
   
@@ -1109,6 +1176,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const imgWrap = document.querySelector('.lightbox-image-wrap');
   const lightboxFavActionBtn = document.getElementById('lightbox-fav-btn');
   const lightboxInquireBtn = document.getElementById('lightbox-inquire-btn');
+  const lightboxCaption = document.getElementById('lightbox-caption');
+
+  function syncLightboxFavBtn(imageUrl) {
+    if (!lightboxFavActionBtn) return;
+    const isFavorited = favorites.includes(imageUrl);
+    lightboxFavActionBtn.classList.toggle('favorited', isFavorited);
+    lightboxFavActionBtn.innerHTML = isFavorited ? 
+      `<i class="fa-solid fa-heart"></i> Favorited` : 
+      `<i class="fa-regular fa-heart"></i> Favorite`;
+  }
 
   function openLightbox(index, categoryName) {
     lightboxActiveIndex = index;
@@ -1118,6 +1195,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!imageUrl) return;
 
     lightboxImg.src = imageUrl;
+    if (lightboxCaption) {
+      lightboxCaption.innerHTML = `${getDesignTitleFromUrl(imageUrl)} <span>${lightboxCategoryName}</span>`;
+    }
+    syncLightboxFavBtn(imageUrl);
 
     lightboxModal.style.display = 'block';
     document.body.style.overflow = 'hidden'; 
@@ -1154,7 +1235,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   document.addEventListener('keydown', (e) => {
-    if (lightboxModal.style.display === 'block') {
+    if (e.key === 'Escape' && quoteModal && quoteModal.classList.contains('open')) {
+      closeQuoteModal();
+      return;
+    }
+    if (lightboxModal && lightboxModal.style.display === 'block') {
       if (e.key === 'Escape') closeLightbox();
       if (e.key === 'ArrowRight') nextLightboxImage();
       if (e.key === 'ArrowLeft') prevLightboxImage();
@@ -1186,8 +1271,162 @@ document.addEventListener('DOMContentLoaded', () => {
     lightboxInquireBtn.addEventListener('click', () => {
       const url = lightboxActiveList[lightboxActiveIndex];
       if (!url) return;
+      closeLightbox();
+      openQuoteModal({
+        packageName: 'Single Pre-Made Design ($49+)',
+        designs: [url]
+      });
+    });
+  }
 
-      // Redirect directly to the user's Google Form in a new tab
+  // ==========================================================================
+  // INTERACTIVE QUOTE MODAL (PRE-FILLED WHATSAPP / EMAIL / GOOGLE FORM)
+  // ==========================================================================
+  const quoteModal = document.getElementById('quote-modal');
+  const quoteCloseBtn = document.getElementById('quote-close-btn');
+  const quoteSelectedWrap = document.getElementById('quote-selected-wrap');
+  const quoteSelectedList = document.getElementById('quote-selected-list');
+  const quoteNameInput = document.getElementById('quote-name');
+  const quotePackageSelect = document.getElementById('quote-package');
+  const quoteGarmentSelect = document.getElementById('quote-garment');
+  const quoteQtySelect = document.getElementById('quote-qty');
+  const quoteNotesInput = document.getElementById('quote-notes');
+  const quoteWhatsappBtn = document.getElementById('quote-whatsapp-btn');
+  const quoteEmailBtn = document.getElementById('quote-email-btn');
+  const quoteGformBtn = document.getElementById('quote-gform-btn');
+  const appToast = document.getElementById('app-toast');
+
+  let quoteAttachedDesigns = [];
+
+  function showToast(msg) {
+    if (!appToast) return;
+    appToast.textContent = msg;
+    appToast.classList.add('show');
+    setTimeout(() => appToast.classList.remove('show'), 3000);
+  }
+
+  function renderQuoteDesigns() {
+    if (!quoteSelectedWrap || !quoteSelectedList) return;
+    quoteSelectedList.innerHTML = '';
+    if (quoteAttachedDesigns.length === 0) {
+      quoteSelectedWrap.classList.add('hidden');
+      return;
+    }
+    quoteSelectedWrap.classList.remove('hidden');
+    quoteAttachedDesigns.forEach((url, idx) => {
+      const title = getDesignTitleFromUrl(url);
+      const chip = document.createElement('div');
+      chip.className = 'quote-design-chip';
+      chip.innerHTML = `
+        <img src="${url}" alt="${title}">
+        <span>${title}</span>
+        <button type="button" aria-label="Remove design">&times;</button>
+      `;
+      chip.querySelector('button').addEventListener('click', () => {
+        quoteAttachedDesigns.splice(idx, 1);
+        renderQuoteDesigns();
+      });
+      quoteSelectedList.appendChild(chip);
+    });
+  }
+
+  function openQuoteModal(opts = {}) {
+    if (!quoteModal) return;
+    if (opts.packageName && quotePackageSelect) {
+      quotePackageSelect.value = opts.packageName;
+    }
+    if (opts.garmentType && quoteGarmentSelect) {
+      quoteGarmentSelect.value = opts.garmentType;
+    }
+    if (Array.isArray(opts.designs)) {
+      quoteAttachedDesigns = [...opts.designs];
+    } else if (quoteAttachedDesigns.length === 0 && favorites.length > 0) {
+      quoteAttachedDesigns = [...favorites];
+    }
+    renderQuoteDesigns();
+    quoteModal.classList.add('open');
+    quoteModal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeQuoteModal() {
+    if (!quoteModal) return;
+    quoteModal.classList.remove('open');
+    quoteModal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  function buildQuoteSummaryText() {
+    const client = (quoteNameInput?.value || '').trim() || 'Prospective Client';
+    const pkg = quotePackageSelect?.value || 'Custom Commission';
+    const garment = quoteGarmentSelect?.value || 'Sportswear';
+    const qty = quoteQtySelect?.value || 'TBD';
+    const notes = (quoteNotesInput?.value || '').trim();
+
+    const lines = [
+      `Hi James! I'd like to request a quote from www.jamesmesa.online:`,
+      `• Client / Team: ${client}`,
+      `• Package: ${pkg}`,
+      `• Garment Type: ${garment}`,
+      `• Estimated Quantity: ${qty}`
+    ];
+
+    if (quoteAttachedDesigns.length > 0) {
+      lines.push(`• Selected Design(s):`);
+      quoteAttachedDesigns.forEach(url => {
+        const cleanUrl = `https://www.jamesmesa.online/${url.replace(/ /g, '%20')}`;
+        lines.push(`  - ${getDesignTitleFromUrl(url)} (${cleanUrl})`);
+      });
+    }
+    if (notes) {
+      lines.push(`• Notes: ${notes}`);
+    }
+    return lines.join('\n');
+  }
+
+  document.querySelectorAll('.open-quote-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      openQuoteModal({
+        packageName: btn.getAttribute('data-package') || 'Custom Commission',
+        designs: favorites.length > 0 ? [...favorites] : []
+      });
+    });
+  });
+
+  if (quoteCloseBtn) quoteCloseBtn.addEventListener('click', closeQuoteModal);
+  if (quoteModal) {
+    quoteModal.addEventListener('click', (e) => {
+      if (e.target === quoteModal) closeQuoteModal();
+    });
+  }
+
+  if (quoteWhatsappBtn) {
+    quoteWhatsappBtn.addEventListener('click', () => {
+      const msg = encodeURIComponent(buildQuoteSummaryText());
+      window.open(`https://wa.me/639531658294?text=${msg}`, '_blank');
+    });
+  }
+
+  if (quoteEmailBtn) {
+    quoteEmailBtn.addEventListener('click', () => {
+      const pkg = quotePackageSelect?.value || 'Design Inquiry';
+      const subject = encodeURIComponent(`Sportswear Design Inquiry - ${pkg}`);
+      const body = encodeURIComponent(buildQuoteSummaryText());
+      window.location.href = `mailto:rj.bmesa@gmail.com?subject=${subject}&body=${body}`;
+    });
+  }
+
+  if (quoteGformBtn) {
+    quoteGformBtn.addEventListener('click', async () => {
+      const summary = buildQuoteSummaryText();
+      try {
+        if (navigator.clipboard) {
+          await navigator.clipboard.writeText(summary);
+          showToast('Quote details & design names copied! Opening form...');
+        }
+      } catch (e) {
+        showToast('Opening project form...');
+      }
       window.open('https://forms.gle/Jr83hkyqjNx4mRbPA', '_blank');
     });
   }
@@ -1348,6 +1587,50 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       type(); // Fallback
     }
+  }
+
+  // Apply URL deep-link parameters (?tab=..., ?color=..., ?subcat=..., ?q=...) on load
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramTab = urlParams.get('tab');
+    const paramColor = urlParams.get('color');
+    const paramSubcat = urlParams.get('subcat');
+    const paramQ = urlParams.get('q');
+
+    if (paramTab && categoryTabs) {
+      const targetTab = categoryTabs.querySelector(`[data-category="${paramTab}"]`);
+      if (targetTab) {
+        categoryTabs.querySelectorAll('.cat-tab-btn').forEach(b => b.classList.remove('active'));
+        targetTab.classList.add('active');
+        activeTab = paramTab;
+        if (activeTab === 'jersey') colorFiltersWrapper.classList.remove('hidden');
+        else colorFiltersWrapper.classList.add('hidden');
+        updateSubCategoryUI();
+      }
+    }
+    if (paramColor && activeTab === 'jersey' && colorFilters) {
+      const targetColor = colorFilters.querySelector(`[data-color="${paramColor}"]`);
+      if (targetColor) {
+        colorFilters.querySelectorAll('.color-swatch').forEach(sw => sw.classList.remove('active'));
+        targetColor.classList.add('active');
+        activeColorFilter = paramColor;
+      }
+    }
+    if (paramSubcat && activeTab === 'shirt' && subCategoryFiltersContainer) {
+      const targetSub = subCategoryFiltersContainer.querySelector(`[data-subcat="${paramSubcat}"]`);
+      if (targetSub) {
+        subCategoryFiltersContainer.querySelectorAll('.sub-cat-btn').forEach(b => b.classList.remove('active'));
+        targetSub.classList.add('active');
+        activeSubCategory = paramSubcat;
+      }
+    }
+    if (paramQ && searchInput) {
+      searchInput.value = paramQ;
+      searchQuery = paramQ.toLowerCase().trim();
+      if (searchClearBtn) searchClearBtn.style.display = 'block';
+    }
+  } catch (e) {
+    // Ignore malformed query strings
   }
 
   // Initialize Catalogue

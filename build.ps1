@@ -1,11 +1,15 @@
 # James Mesa Portfolio - Production Build Script
 # Ensures index.html retains full semantic HTML for SEO and AEO crawlability.
+param(
+    [string]$SyncTo = ""
+)
 
-$indexSrcPath = "C:\Users\James\Documents\GitHub\Portfolio-James-Mesa\index.src.html"
-$appSrcPath = "C:\Users\James\Documents\GitHub\Portfolio-James-Mesa\app.src.js"
+$repoRoot = $PSScriptRoot
+$indexSrcPath = Join-Path $repoRoot "index.src.html"
+$appSrcPath   = Join-Path $repoRoot "app.src.js"
 
-$indexDestPath = "C:\Users\James\Documents\GitHub\Portfolio-James-Mesa\index.html"
-$appDestPath = "C:\Users\James\Documents\GitHub\Portfolio-James-Mesa\app.js"
+$indexDestPath = Join-Path $repoRoot "index.html"
+$appDestPath   = Join-Path $repoRoot "app.js"
 
 if ((Test-Path $indexSrcPath) -and (Test-Path $appSrcPath)) {
     Write-Host "Compiling portfolio files for production (SEO & AEO optimized)..."
@@ -25,9 +29,14 @@ if ((Test-Path $indexSrcPath) -and (Test-Path $appSrcPath)) {
     # 4. Write app.js directly from app.src.js
     [System.IO.File]::WriteAllText($appDestPath, $appJs, $utf8NoBom)
     
-    Write-Host "Build Complete!"
+    Write-Host "Build Complete!" -ForegroundColor Green
     Write-Host " - index.html generated with 100% crawlable semantic HTML and structured schema."
-    Write-Host " - app.js compiled cleanly with zero eval lag."
+    Write-Host " - app.js compiled cleanly."
+
+    if ($SyncTo -and (Test-Path $SyncTo)) {
+        Write-Host "Syncing built files to $SyncTo ..." -ForegroundColor Cyan
+        Copy-Item -Path $indexSrcPath, $indexDestPath, $appSrcPath, $appDestPath -Destination $SyncTo -Force
+    }
 } else {
-    Write-Warning "Missing source files! Ensure index.src.html and app.src.js exist."
+    Write-Warning "Missing source files in $repoRoot! Ensure index.src.html and app.src.js exist."
 }

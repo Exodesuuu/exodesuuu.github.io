@@ -1,6 +1,9 @@
 # James Mesa Portfolio - Manual Image Catalog Refresher
-# Double-click or run this script anytime you manually add, remove, rename, or re-sort images inside the 'images/' folder.
-# It will scan all your subfolders and automatically update the 'data.js' database so your website displays the correct files instantly!
+# Run this script anytime you add, remove, rename, or re-sort images inside the 'images/' folder.
+# It scans all subfolders and automatically updates 'data.js' so your website displays the latest files!
+param(
+    [switch]$NoPause
+)
 
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repoRoot = Split-Path -Parent $scriptPath
@@ -21,24 +24,25 @@ function Get-DateTaken {
         return $dateTaken
     } catch {
         if ($null -ne $img) { $img.Dispose() }
-        # Fallback to LastWriteTime if no EXIF Date Taken exists
         return (Get-Item -LiteralPath $FilePath).LastWriteTime
     }
 }
 
 if (-not (Test-Path $imagesDir)) {
-    Write-Error "Could not find 'images/' folder in $scriptPath. Please make sure this script is placed in the same folder as index.html."
-    Read-Host "Press Enter to exit..."
-    exit
+    Write-Error "Could not find 'images/' folder in $repoRoot."
+    if (-not $NoPause) { Read-Host "Press Enter to exit..." }
+    exit 1
 }
 
 Write-Host "Scanning 'images/' folder..."
-$folders = Get-ChildItem -Path $imagesDir -Directory
+$folders = Get-ChildItem -Path $imagesDir -Directory | Sort-Object Name
 $portfolioData = @()
+$totalImages = 0
 
-# We map folder names to clean category names and path values
 $categoryMap = @{
     "home"       = @{ Name = "Home"; Path = "/home"; IsDesign = $false }
+    "new-drop"   = @{ Name = "New Drop"; Path = "/new-drop"; IsDesign = $true }
+    "new drop"   = @{ Name = "New Drop"; Path = "/new-drop"; IsDesign = $true }
     "black"      = @{ Name = "Design - Black"; Path = "/design/black-custom-jersey-design"; IsDesign = $true }
     "white"      = @{ Name = "Design - White"; Path = "/design/white-custom-jersey-design"; IsDesign = $true }
     "blue"       = @{ Name = "Design - Blue"; Path = "/design/blue-custom-jersey-design"; IsDesign = $true }
@@ -59,12 +63,15 @@ $categoryMap = @{
     "logo"       = @{ Name = "Design - Logo"; Path = "/design/logo-designs"; IsDesign = $true }
 }
 
-# Process each folder
 foreach ($folder in $folders) {
     $folderName = $folder.Name.ToLower()
+
+    # Never index the staging folder
+    if ($folderName -eq "unsorted") {
+        continue
+    }
+
     $map = $categoryMap[$folderName]
-    
-    # If not in map, build a fallback layout
     if (-not $map) {
         $cleanName = (Get-Culture).TextInfo.ToTitleCase($folderName)
         $map = @{
@@ -74,12 +81,10 @@ foreach ($folder in $folders) {
         }
     }
     
-    # Scan for image files recursively to capture subfolder assets
     $files = Get-ChildItem -Path $folder.FullName -File -Recurse | Where-Object { 
         $_.Extension -match "\.(jpg|jpeg|png|gif|svg|webp)$" 
     }
     
-    # Sort files by EXIF Date Taken (falling back to LastWriteTime if no EXIF exists)
     $filesWithDates = $files | ForEach-Object {
         [PSCustomObject]@{
             File = $_
@@ -90,16 +95,15 @@ foreach ($folder in $folders) {
     
     $localPaths = @()
     foreach ($file in $sortedFiles) {
-        # Determine if file is inside a subfolder (e.g. tshirt/sports/)
-        $subName = Split-Path (Split-Path $file.FullName -Parent) -Leaf
-        if ($subName -eq $folder.Name) {
-            $localPaths += "images/$($folder.Name)/$($file.Name)"
-        } else {
-            # Normalize path delimiters for browser loading
-            $localPaths += "images/$($folder.Name)/$subName/$($file.Name)"
-        }
+        $rel = $file.FullName.Substring($imagesDir.Length).TrimStart('\', '/').Replace('\', '/')
+        $localPaths += "images/$rel"
     }
     
+    if ($localPaths.Count -eq 0) {
+        continue
+    }
+
+    $totalImages += $localPaths.Count
     $entry = [PSCustomObject]@{
         Name = $map.Name
         Path = $map.Path
@@ -111,11 +115,10 @@ foreach ($folder in $folders) {
     Write-Host "Processed $($folder.Name): Found $($localPaths.Count) images (newest first)."
 }
 
-# Convert to JSON and save
 $json = $portfolioData | ConvertTo-Json -Depth 5
 $jsContent = "const PORTFOLIO_DATA = $json;"
-Set-Content -Path $dataJsPath -Value $jsContent -Encoding utf8
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+[System.IO.File]::WriteAllText($dataJsPath, $jsContent, $utf8NoBom)
 
 Write-Host "`nSuccessfully refreshed data.js!" -ForegroundColor Green
-Write-Host "You have $($portfolioData.Count) categories indexed in your catalog."
-Start-Sleep -Seconds 2
+Write-Host "Indexed $($portfolioData.Count) categories and $totalImages total designs."
