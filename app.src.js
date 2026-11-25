@@ -417,6 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const drawerOverlay = document.getElementById('drawer-overlay');
   const drawerItemsContainer = document.getElementById('drawer-items-container');
   const drawerCount = document.getElementById('drawer-count');
+  const drawerShareBtn = document.getElementById('drawer-share-btn');
   const drawerClearBtn = document.getElementById('drawer-clear-btn');
   const drawerInquireBtn = document.getElementById('drawer-inquire-btn');
 
@@ -637,11 +638,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  if (drawerShareBtn) {
+    drawerShareBtn.addEventListener('click', async () => {
+      if (favorites.length === 0) {
+        showToast('Add at least one design to your shortlist first.');
+        return;
+      }
+      const baseUrl = window.location.protocol.startsWith('http')
+        ? `${window.location.origin}${window.location.pathname}`
+        : 'https://www.jamesmesa.online/';
+      const shareUrl = `${baseUrl}?shortlist=${encodeURIComponent(favorites.join('|'))}`;
+      try {
+        if (navigator.clipboard) {
+          await navigator.clipboard.writeText(shareUrl);
+          showToast('Shortlist link copied! Share it with your team.');
+        } else if (navigator.share) {
+          await navigator.share({ title: 'Jersey Design Shortlist', url: shareUrl });
+        }
+      } catch (e) {
+        showToast('Ready to share: ' + shareUrl);
+      }
+    });
+  }
+
   if (drawerInquireBtn) {
     drawerInquireBtn.addEventListener('click', () => {
       closeDrawer();
       openQuoteModal({
-        packageName: favorites.length > 1 ? 'Bulk Team Package (10+ Units)' : 'Single Pre-Made Design ($49+)',
+        packageName: favorites.length > 1 ? 'Bulk Team Package (10+ Units)' : 'Single Pre-Made Design',
         designs: favorites.length > 0 ? [...favorites] : []
       });
     });
@@ -702,6 +726,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (activeTab === 'jersey' && activeColorFilter !== 'all') params.set('color', activeColorFilter);
       if (activeTab === 'shirt' && activeSubCategory !== 'all') params.set('subcat', activeSubCategory);
       if (searchQuery) params.set('q', searchQuery);
+      if (showFavoritesOnly && favorites.length > 0) params.set('shortlist', favorites.join('|'));
       const queryStr = params.toString();
       const nextUrl = queryStr ? `${window.location.pathname}?${queryStr}${window.location.hash}` : `${window.location.pathname}${window.location.hash}`;
       window.history.replaceState(null, '', nextUrl);
@@ -1273,7 +1298,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!url) return;
       closeLightbox();
       openQuoteModal({
-        packageName: 'Single Pre-Made Design ($49+)',
+        packageName: 'Single Pre-Made Design',
         designs: [url]
       });
     });
@@ -1287,6 +1312,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const quoteSelectedWrap = document.getElementById('quote-selected-wrap');
   const quoteSelectedList = document.getElementById('quote-selected-list');
   const quoteNameInput = document.getElementById('quote-name');
+  const quoteCountrySelect = document.getElementById('quote-country');
   const quotePackageSelect = document.getElementById('quote-package');
   const quoteGarmentSelect = document.getElementById('quote-garment');
   const quoteQtySelect = document.getElementById('quote-qty');
@@ -1358,6 +1384,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function buildQuoteSummaryText() {
     const client = (quoteNameInput?.value || '').trim() || 'Prospective Client';
+    const country = quoteCountrySelect?.value || 'Not specified';
     const pkg = quotePackageSelect?.value || 'Custom Commission';
     const garment = quoteGarmentSelect?.value || 'Sportswear';
     const qty = quoteQtySelect?.value || 'TBD';
@@ -1366,6 +1393,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const lines = [
       `Hi James! I'd like to request a quote from www.jamesmesa.online:`,
       `• Client / Team: ${client}`,
+      `• Country / Region: ${country}`,
       `• Package: ${pkg}`,
       `• Garment Type: ${garment}`,
       `• Estimated Quantity: ${qty}`
@@ -1589,13 +1617,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Apply URL deep-link parameters (?tab=..., ?color=..., ?subcat=..., ?q=...) on load
+  // Apply URL deep-link parameters (?tab=..., ?color=..., ?subcat=..., ?q=..., ?shortlist=...) on load
+  let openedSharedShortlist = false;
   try {
     const urlParams = new URLSearchParams(window.location.search);
+    const paramShortlist = urlParams.get('shortlist');
     const paramTab = urlParams.get('tab');
     const paramColor = urlParams.get('color');
     const paramSubcat = urlParams.get('subcat');
     const paramQ = urlParams.get('q');
+
+    if (paramShortlist) {
+      const validCatalogSet = new Set();
+      Object.keys(categoriesDb).forEach(k => {
+        categoriesDb[k].images.forEach(img => validCatalogSet.add(img));
+      });
+      const sharedItems = paramShortlist.split('|').map(s => s.trim()).filter(s => validCatalogSet.has(s));
+      if (sharedItems.length > 0) {
+        sharedItems.forEach(item => {
+          if (!favorites.includes(item)) favorites.push(item);
+        });
+        try {
+          localStorage.setItem('jm_portfolio_favorites', JSON.stringify(favorites));
+        } catch (e) {}
+        if (favCountBadge) favCountBadge.textContent = favorites.length;
+        showFavoritesOnly = true;
+        if (filterFavToggle) filterFavToggle.classList.add('active');
+        if (headbarFavToggleBtn) headbarFavToggleBtn.classList.add('active');
+        openedSharedShortlist = true;
+      }
+    }
 
     if (paramTab && categoryTabs) {
       const targetTab = categoryTabs.querySelector(`[data-category="${paramTab}"]`);
@@ -1635,4 +1686,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize Catalogue
   applyFilters();
+  if (openedSharedShortlist) {
+    const catSec = document.getElementById('catalogue');
+    if (catSec) catSec.scrollIntoView({ behavior: 'smooth' });
+    showToast('Loaded shared team shortlist!');
+  }
 });

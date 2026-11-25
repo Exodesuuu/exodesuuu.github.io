@@ -82,11 +82,12 @@ The portfolio hosted at https://www.jamesmesa.online/ features over 880 high-res
 ---
 
 ## Commercial Licensing & Commission Packages
-- **Tier 1: Single Pre-Made Design ($49 USD)**
+- **Tier 1: Single Pre-Made Design (Regional Quote)**
   - Non-exclusive commercial license for any design from the catalog.
   - High-resolution print-ready files.
   - Source vector package (Adobe Illustrator .AI / EPS / PDF).
   - Instant digital delivery.
+  - Priced according to client country/region.
 - **Tier 2: Custom Commission (Tailored Quote)**
   - 100% unique custom design crafted to client specifications.
   - Photorealistic 3D mockup presentation for marketing.
